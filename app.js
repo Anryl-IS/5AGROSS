@@ -409,6 +409,32 @@ function renderComparison() {
         }
     }
 
+    // Populate Added Summary Cards
+    const totalDiffAmount = currTotal - prevTotal;
+    const totalDiffEl = document.getElementById('total-difference-amount');
+    if (totalDiffEl) {
+        animateNumber('total-difference-amount', Math.abs(totalDiffAmount), true);
+        if (totalDiffAmount >= 0) {
+            totalDiffEl.parentElement.classList.remove('text-red-400');
+            totalDiffEl.previousElementSibling.innerText = '+₱';
+            totalDiffEl.previousElementSibling.className = 'text-xl text-emerald-500 font-bold';
+        } else {
+            totalDiffEl.parentElement.classList.remove('text-emerald-400');
+            totalDiffEl.previousElementSibling.innerText = '-₱';
+            totalDiffEl.previousElementSibling.className = 'text-xl text-red-500 font-bold';
+        }
+    }
+
+    let incCount = 0;
+    let decCount = 0;
+    Object.values(shiftData).forEach(s => {
+        if (s.curr > s.prev) incCount++;
+        else if (s.prev > s.curr) decCount++;
+    });
+
+    animateNumber('areas-increased', incCount, false);
+    animateNumber('areas-decreased', decCount, false);
+
     // Chart
     const ctx = document.getElementById('comparisonChart')?.getContext('2d');
     if (ctx) {
@@ -453,33 +479,39 @@ function renderComparison() {
         });
     }
 
-    // Unit Shift
-    const shiftList = document.getElementById('shift-list');
-    if (shiftList) {
-        const shifts = Object.values(shiftData)
-            .map(s => {
-                s.diff = s.curr - s.prev;
-                s.pct = s.prev > 0 ? (s.diff / s.prev) * 100 : 0;
-                return s;
-            })
-            .sort((a,b) => b.diff - a.diff);
+    // Separate Growth modules
+    const listInc = document.getElementById('list-increased');
+    const listDec = document.getElementById('list-decreased');
+    
+    if (listInc && listDec) {
+        const shifts = Object.values(shiftData).map(s => {
+            s.diff = s.curr - s.prev;
+            s.pct = s.prev > 0 ? (s.diff / s.prev) * 100 : 0;
+            return s;
+        });
 
-        shiftList.innerHTML = shifts.map(s => `
+        const increased = shifts.filter(s => s.diff >= 0).sort((a,b) => b.diff - a.diff);
+        const decreased = shifts.filter(s => s.diff < 0).sort((a,b) => a.diff - b.diff);
+
+        const renderItem = (s) => `
             <div class="flex items-center justify-between p-4 mb-2 bg-ambient-800/50 rounded-2xl border border-zinc-800 hover:border-zinc-700 transition-colors">
                 <div>
                     <h4 class="text-white font-bold text-sm tracking-wide">${s.name}</h4>
-                    <p class="text-xs text-zinc-500 font-medium mt-1">Previous: ₱${s.prev.toLocaleString()} → <span class="text-zinc-300">₱${s.curr.toLocaleString()}</span></p>
+                    <p class="text-xs text-zinc-500 font-medium mt-1">Previous: ₱${s.prev.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} → <span class="text-zinc-300">₱${s.curr.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span></p>
                 </div>
                 <div class="text-right">
                     <span class="block ${s.diff >= 0 ? 'text-emerald-400' : 'text-red-400'} font-black tabular-nums">
-                        ${s.diff >= 0 ? '+' : ''}₱${s.diff.toLocaleString()}
+                        ${s.diff >= 0 ? '+' : ''}₱${s.diff.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
                     </span>
                     <span class="text-[10px] font-bold uppercase px-2 py-0.5 mt-1 inline-block rounded ${s.pct >= 0 ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}">
                         ${s.pct >= 0 ? '<i class="fas fa-caret-up"></i>' : '<i class="fas fa-caret-down"></i>'} ${Math.abs(s.pct).toFixed(1)}%
                     </span>
                 </div>
             </div>
-        `).join('');
+        `;
+
+        listInc.innerHTML = increased.length > 0 ? increased.map(renderItem).join('') : '<p class="text-zinc-500 italic text-sm p-4 text-center">No units recorded growth.</p>';
+        listDec.innerHTML = decreased.length > 0 ? decreased.map(renderItem).join('') : '<p class="text-zinc-500 italic text-sm p-4 text-center">No units recorded deficit.</p>';
     }
 }
 
