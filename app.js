@@ -172,6 +172,7 @@ function parseCSVLine(line) {
 function updateDashboard() {
     renderOverview();
     renderDetails(dashboardData);
+    renderAreas();
     renderComparison();
 }
 
@@ -279,6 +280,88 @@ function handleSearch(e) {
         t.supervisor.toLowerCase().includes(q)
     );
     renderDetails(filtered);
+}
+
+function renderAreas() {
+    const grid = document.getElementById('areas-grid');
+    if (!grid) return;
+
+    if (dates.length < 2) {
+        grid.innerHTML = '<p class="text-zinc-500 italic col-span-full">Insufficient chronological data for area comparison.</p>';
+        return;
+    }
+
+    const mid = Math.floor(dates.length / 2);
+    const areaStats = {};
+
+    dashboardData.forEach(t => {
+        if (!areaStats[t.supervisor]) {
+            areaStats[t.supervisor] = { name: t.supervisor, prev: 0, curr: 0, activeTellers: 0 };
+        }
+        
+        const sumPrev = t.dailySales.slice(0, mid).reduce((a, b) => a + b, 0);
+        const sumCurr = t.dailySales.slice(mid, dates.length).reduce((a, b) => a + b, 0);
+        
+        areaStats[t.supervisor].prev += sumPrev;
+        areaStats[t.supervisor].curr += sumCurr;
+        if (t.isActive) areaStats[t.supervisor].activeTellers += 1;
+    });
+
+    const cardsHtml = Object.values(areaStats)
+        .sort((a, b) => b.curr - a.curr)
+        .map(area => {
+            const diff = area.curr - area.prev;
+            const pct = area.prev > 0 ? (diff / area.prev) * 100 : 0;
+            const isUp = diff >= 0;
+
+            return `
+            <div class="glass-card p-6 rounded-3xl border border-zinc-800 flex flex-col relative overflow-hidden group hover:border-zinc-700 transition-all shadow-[0_8px_30px_-5px_rgba(0,0,0,0.5)]">
+                <div class="absolute inset-0 bg-gradient-to-br from-zinc-800/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"></div>
+                
+                <div class="flex justify-between items-start mb-4 relative z-10">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-ambient-800 border border-zinc-700 flex items-center justify-center text-zinc-400">
+                            <i class="fas fa-layer-group"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-black text-white uppercase tracking-widest">${area.name}</h3>
+                            <p class="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mt-0.5"><i class="fas fa-user-tie mr-1"></i>${area.activeTellers} Active Tellers</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mt-2 relative z-10">
+                    <div class="bg-ambient-900/50 rounded-2xl p-4 border border-zinc-800/50">
+                        <span class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1 shadow-sm">Previous 7D</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-xs font-bold text-zinc-600">₱</span>
+                            <span class="text-lg font-bold text-zinc-400 tracking-tight">${area.prev.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        </div>
+                    </div>
+                    <div class="bg-ambient-900/50 rounded-2xl p-4 border border-zinc-800/50">
+                        <span class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-1 shadow-sm">Current 7D</span>
+                        <div class="flex items-baseline gap-1">
+                            <span class="text-xs font-bold text-emerald-600">₱</span>
+                            <span class="text-xl font-bold text-white tracking-tight">${area.curr.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 flex items-center justify-between border-t border-zinc-800/50 pt-4 relative z-10">
+                    <span class="text-xs font-bold text-zinc-500 uppercase tracking-widest">Growth Shift</span>
+                    <div class="text-right">
+                        <span class="block text-sm ${isUp ? 'text-emerald-400' : 'text-red-400'} font-black tabular-nums">
+                            ${isUp ? '+' : ''}₱${diff.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}
+                        </span>
+                        <span class="text-[10px] font-bold uppercase px-2 py-0.5 mt-1 inline-block rounded ${isUp ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}">
+                            ${isUp ? '<i class="fas fa-caret-up"></i>' : '<i class="fas fa-caret-down"></i>'} ${Math.abs(pct).toFixed(1)}%
+                        </span>
+                    </div>
+                </div>
+            </div>`;
+        }).join('');
+
+    grid.innerHTML = cardsHtml;
 }
 
 function renderComparison() {

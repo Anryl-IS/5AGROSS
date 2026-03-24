@@ -76,7 +76,7 @@
             </div>
 
             <!-- Tab Links -->
-            <div class="flex items-center gap-1 bg-ambient-800/80 p-1.5 rounded-2xl border border-zinc-700/50">
+            <div class="flex items-center gap-1 bg-ambient-800/80 p-1.5 rounded-2xl border border-zinc-700/50 flex-wrap">
                 <button data-tab="overview"
                     class="tab-btn active px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-zinc-400 hover:text-white">
                     <i class="fas fa-chart-pie mr-1.5"></i> Overview
@@ -84,6 +84,10 @@
                 <button data-tab="details"
                     class="tab-btn px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-zinc-400 hover:text-white">
                     <i class="fas fa-list mr-1.5"></i> Details
+                </button>
+                <button data-tab="areas"
+                    class="tab-btn px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-zinc-400 hover:text-white">
+                    <i class="fas fa-map-location-dot mr-1.5"></i> Area Gross
                 </button>
                 <button data-tab="comparison"
                     class="tab-btn px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-zinc-400 hover:text-white">
@@ -222,6 +226,18 @@
                         </tbody>
                     </table>
                 </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB: AREA GROSS ================= -->
+        <section id="tab-areas" class="tab-content hidden">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-white tracking-tight">Area Diagnostics</h2>
+                <p class="text-zinc-500 mt-1 font-medium">Comparative 7-day evaluation sorted per operational area.</p>
+            </div>
+            
+            <div id="areas-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+                <!-- Cards injected via JS -->
             </div>
         </section>
 
