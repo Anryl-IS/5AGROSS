@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>5A GENERAL GROSS</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+        rel="stylesheet">
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['"Inter"', 'sans-serif'] },
+                    colors: {
+                        ambient: { 900: '#09090b', 800: '#18181b', 700: '#27272a' },
+                        gold: { 400: '#facc15', 500: '#eab308', 600: '#ca8a04' }
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+
+<body
+    class="bg-ambient-900 text-zinc-300 antialiased overflow-x-hidden min-h-screen flex flex-col selection:bg-gold-500/30">
+
+    <!-- Ambient Glow Effects -->
+    <div
+        class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-gold-500/10 blur-[150px] rounded-full pointer-events-none z-[-1]">
+    </div>
+    <div
+        class="fixed bottom-0 right-1/4 w-[400px] h-[400px] bg-emerald-500/10 blur-[150px] rounded-full pointer-events-none z-[-1]">
+    </div>
+
+    <!-- UI Loader -->
+    <div id="loader"
+        class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-ambient-900/90 backdrop-blur-md transition-opacity duration-300">
+        <div
+            class="w-16 h-16 border-4 border-zinc-800 border-t-gold-500 rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
+        </div>
+        <h2 class="text-xl font-bold text-white tracking-widest uppercase">5a Royal Gaming OPC</h2>
+        <p class="text-zinc-400 mt-2 text-sm tracking-widest animate-pulse">Establishing Secure Connection...</p>
+    </div>
+
+    <!-- Top Navigation -->
+    <nav class="sticky top-0 z-40 bg-ambient-900/80 backdrop-blur-xl border-b border-zinc-800/80 shadow-sm">
+        <div
+            class="max-w-[1600px] mx-auto px-6 lg:px-10 py-5 flex flex-col md:flex-row items-center justify-between gap-4">
+
+            <!-- Branding -->
+            <div class="flex flex-col items-center md:items-start select-none cursor-default">
+                <div class="flex items-center gap-3">
+                    <div
+                        class="w-8 h-8 rounded-lg bg-gradient-to-br from-gold-400 to-amber-600 flex items-center justify-center text-ambient-900 shadow-[0_0_15px_rgba(234,179,8,0.4)]">
+                        <i class="fas fa-coins font-bold"></i>
+                    </div>
+                    <h1
+                        class="text-2xl font-black text-white tracking-tight leading-none bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
+                        5A ROYAL GAMING <span class="text-gold-500">OPC</span>
+                    </h1>
+                </div>
+                <p class="text-[11px] font-bold tracking-[0.2em] text-zinc-500 uppercase mt-2 ml-11">LDS Daily Gross
+                    Tracking Dashboard</p>
+            </div>
+
+            <!-- Tab Links -->
+            <div class="flex items-center gap-1 bg-ambient-800/80 p-1.5 rounded-2xl border border-zinc-700/50">
+                <button data-tab="overview"
+                    class="tab-btn active px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-zinc-400 hover:text-white">
+                    <i class="fas fa-chart-pie mr-1.5"></i> Overview
+                </button>
+                <button data-tab="details"
+                    class="tab-btn px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-zinc-400 hover:text-white">
+                    <i class="fas fa-list mr-1.5"></i> Details
+                </button>
+                <button data-tab="comparison"
+                    class="tab-btn px-6 py-2.5 rounded-xl text-sm font-bold transition-all text-zinc-400 hover:text-white">
+                    <i class="fas fa-code-compare mr-1.5"></i> Comparison
+                </button>
+            </div>
+
+            <!-- Status Pill -->
+            <div
+                class="hidden lg:flex items-center gap-3 bg-ambient-800/50 border border-zinc-700 w-fit px-4 py-2 rounded-xl">
+                <div class="flex h-2 w-2 relative">
+                    <span
+                        class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                    <span
+                        class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]"></span>
+                </div>
+                <span id="last-updated" class="text-xs font-bold text-zinc-300">Live Status</span>
+            </div>
+
+        </div>
+    </nav>
+
+    <!-- Main Container -->
+    <main class="flex-1 w-full max-w-[1600px] mx-auto p-6 lg:p-10 relative">
+
+        <!-- ================= TAB: OVERVIEW ================= -->
+        <section id="tab-overview" class="tab-content active-tab">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 mt-2">
+                <!-- KPI 1 -->
+                <div
+                    class="glass-card p-8 rounded-3xl border border-zinc-800 relative overflow-hidden group hover:border-zinc-700 transition-all shadow-[0_8px_30px_-5px_rgba(0,0,0,0.5)]">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-gold-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-ambient-800 border border-zinc-700 flex items-center justify-center text-gold-500 mb-6 shadow-inner">
+                            <i class="fas fa-sack-dollar text-xl"></i>
+                        </div>
+                        <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-1">Total Gross</h3>
+                        <div class="flex items-baseline mt-1 group-hover:translate-x-1 transition-transform">
+                            <span class="text-2xl font-bold text-zinc-500 mr-1">₱</span>
+                            <span id="total-gross"
+                                class="text-[2.75rem] font-bold text-white tracking-tight leading-none">0.00</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 2 -->
+                <div
+                    class="glass-card p-8 rounded-3xl border border-zinc-800 relative overflow-hidden group hover:border-zinc-700 transition-all shadow-[0_8px_30px_-5px_rgba(0,0,0,0.5)]">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-ambient-800 border border-zinc-700 flex items-center justify-center text-emerald-500 mb-6 shadow-inner">
+                            <i class="fas fa-users text-xl"></i>
+                        </div>
+                        <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-1">Total Tellers</h3>
+                        <div class="flex items-baseline mt-1 group-hover:translate-x-1 transition-transform">
+                            <span id="total-tellers"
+                                class="text-[2.75rem] font-bold text-white tracking-tight leading-none">0</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- KPI 3 -->
+                <div
+                    class="glass-card p-8 rounded-3xl border border-zinc-800 relative overflow-hidden group hover:border-zinc-700 transition-all shadow-[0_8px_30px_-5px_rgba(0,0,0,0.5)]">
+                    <div
+                        class="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                    </div>
+                    <div class="relative z-10 flex flex-col h-full">
+                        <div
+                            class="w-12 h-12 rounded-xl bg-ambient-800 border border-zinc-700 flex items-center justify-center text-blue-500 mb-6 shadow-inner">
+                            <i class="fas fa-chart-area text-xl"></i>
+                        </div>
+                        <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-1">Avg Daily Gross</h3>
+                        <div class="flex items-baseline mt-1 group-hover:translate-x-1 transition-transform">
+                            <span class="text-2xl font-bold text-zinc-500 mr-1">₱</span>
+                            <span id="avg-daily"
+                                class="text-[2.75rem] font-bold text-white tracking-tight leading-none">0.00</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Trend Chart -->
+            <div class="glass-card p-8 rounded-3xl border border-zinc-800 shadow-[0_8px_30px_-5px_rgba(0,0,0,0.5)]">
+                <div class="flex items-center justify-between mb-8">
+                    <h2 class="text-2xl font-bold text-white tracking-tight">Daily Performance Trend</h2>
+                    <span
+                        class="px-4 py-1.5 bg-zinc-800 text-zinc-300 text-xs font-bold uppercase tracking-widest rounded-lg border border-zinc-700">Holistic
+                        Data</span>
+                </div>
+                <div class="h-[400px] w-full">
+                    <canvas id="trendChart"></canvas>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB: DETAILS ================= -->
+        <section id="tab-details" class="tab-content hidden">
+            <div
+                class="glass-card rounded-3xl border border-zinc-800 shadow-[0_8px_30px_-5px_rgba(0,0,0,0.5)] overflow-hidden">
+                <div
+                    class="p-8 border-b border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4 bg-ambient-800/30">
+                    <h2 class="text-2xl font-bold text-white tracking-tight">Detailed Breakdown</h2>
+                    <div class="relative w-full max-w-sm">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                        <input type="text" id="detailsSearch" placeholder="Search by teller, branch..."
+                            class="w-full bg-ambient-900 border border-zinc-700 text-white text-sm rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all">
+                    </div>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left whitespace-nowrap">
+                        <thead class="bg-ambient-800/50">
+                            <tr>
+                                <th
+                                    class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-zinc-500 border-b border-zinc-800">
+                                    Teller Name</th>
+                                <th
+                                    class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-zinc-500 border-b border-zinc-800">
+                                    Branch Location</th>
+                                <th
+                                    class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-zinc-500 border-b border-zinc-800 text-right">
+                                    Total Gross</th>
+                                <th
+                                    class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-zinc-500 border-b border-zinc-800 text-center">
+                                    Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="detailed-breakdown-body" class="divide-y divide-zinc-800/50">
+                            <!-- Injected rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <!-- ================= TAB: COMPARISON ================= -->
+        <section id="tab-comparison" class="tab-content hidden">
+            <div class="mb-8">
+                <h2 class="text-2xl font-bold text-white tracking-tight">Period Comparison</h2>
+                <p class="text-zinc-500 mt-1 font-medium">Evaluating the latest 7-day period against the preceding 7-day
+                    period.</p>
+            </div>
+
+            <!-- Comparison Metric Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div class="glass-card p-8 rounded-3xl border border-zinc-800 flex flex-col relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-8 opacity-5 text-white/50"><i
+                            class="fas fa-calendar-check text-6xl"></i></div>
+                    <h3 class="text-sm font-bold text-zinc-400 uppercase tracking-widest mb-4">Current 7 Days</h3>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl text-zinc-500 font-bold">₱</span>
+                        <span id="current-week-total" class="text-5xl font-black text-white tracking-tight">0.00</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-8 rounded-3xl border border-zinc-800 flex flex-col relative overflow-hidden">
+                    <div class="absolute top-0 right-0 p-8 opacity-5 text-white/50"><i
+                            class="fas fa-clock-rotate-left text-6xl"></i></div>
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-sm font-bold text-zinc-400 uppercase tracking-widest">Previous 7 Days</h3>
+                        <span id="comparison-badge"
+                            class="px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wider bg-zinc-800">-</span>
+                    </div>
+                    <div class="flex items-baseline gap-2">
+                        <span class="text-3xl text-zinc-500 font-bold">₱</span>
+                        <span id="previous-week-total" class="text-5xl font-black text-white tracking-tight">0.00</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 xl:grid-cols-5 gap-8">
+                <!-- Daily Bar Chart Comparison -->
+                <div
+                    class="xl:col-span-3 glass-card p-8 rounded-3xl border border-zinc-800 shadow-[0_8px_30px_-5px_rgba(0,0,0,0.5)]">
+                    <h2 class="text-xl font-bold text-white tracking-tight mb-8">Daily Comparison Chart</h2>
+                    <div class="h-[350px] w-full">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Unit Performance Shift Table/List -->
+                <div
+                    class="xl:col-span-2 glass-card rounded-3xl border border-zinc-800 shadow-[0_8px_30px_-5px_rgba(0,0,0,0.5)] flex flex-col overflow-hidden">
+                    <div class="p-6 border-b border-zinc-800 bg-ambient-800/30">
+                        <h2 class="text-xl font-bold text-white tracking-tight">Unit Performance Shift</h2>
+                    </div>
+                    <div class="flex-1 overflow-y-auto max-h-[350px] p-2" id="shift-list">
+                        <!-- Shift items injected -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="mt-auto border-t border-zinc-800/80 bg-ambient-900 pb-8 pt-10 px-6">
+        <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-zinc-500 text-sm font-medium">Developed By : Edwin Angelo Catequista @ SMNR IT Group</p>
+            <p class="text-zinc-600 text-xs font-bold tracking-widest uppercase">&copy; 2026 5A ROYAL GAMING OPC. All
+                rights reserved.</p>
+        </div>
+    </footer>
+
+    <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,157 @@
+/* Master Styling Base & Utility Classes */
+
+:root {
+    --brand-500: #14b8a6;
+    --accent-600: #4f46e5;
+}
+
+body {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    /* Subtle paper texture over the base bg */
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='a'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23a)' opacity='0.03'/%3E%3C/svg%3E");
+    background-blend-mode: multiply;
+}
+
+/* Glassmorphism Classes */
+.glass-panel {
+    background: rgba(255, 255, 255, 0.45);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+}
+
+/* Scrollbar Tweaks - MacOS Style */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(148, 163, 184, 0.3);
+    border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(148, 163, 184, 0.6);
+}
+
+/* Navigation System */
+.nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.875rem 1rem;
+    border-radius: 1rem;
+    color: #64748b;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-item .nav-icon {
+    width: 2rem;
+    height: 2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.75rem;
+    background: rgba(241, 245, 249, 0.5);
+    transition: all 0.3s ease;
+}
+
+.nav-item:hover {
+    color: #0f172a;
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.nav-item:hover .nav-icon {
+    background: #fff;
+    color: var(--brand-500);
+    box-shadow: 0 4px 6px -1px rgba(20, 184, 166, 0.1);
+}
+
+.nav-item.active {
+    color: var(--brand-500);
+    background: rgba(204, 251, 241, 0.4);
+    /* brand-100 */
+}
+
+.nav-item.active .nav-icon {
+    background: var(--brand-500);
+    color: white;
+    box-shadow: 0 4px 12px -2px rgba(20, 184, 166, 0.4);
+}
+
+/* Animation Keys */
+@keyframes fadeZoomIn {
+    0% {
+        opacity: 0;
+        transform: scale(0.97) translateY(10px);
+    }
+
+    100% {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.kpi-card,
+.glass-panel {
+    animation: fadeZoomIn 0.6s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Staggered Animation Logic using simple nth-child trickery */
+.kpi-card:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.kpi-card:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.kpi-card:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.kpi-card:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+/* Table Enhancements */
+table tbody tr {
+    transition: all 0.2s ease;
+}
+
+table tbody tr:hover {
+    background: rgba(255, 255, 255, 0.8);
+    transform: scale(1.002);
+    box-shadow: 0 4px 20px -5px rgba(0, 0, 0, 0.05);
+}
+
+/* Status Badges */
+.badge-active {
+    background-color: #ecfdf5;
+    color: #059669;
+    box-shadow: 0 0 0 1px rgba(16, 185, 129, 0.2) inset;
+}
+
+.badge-inactive {
+    background-color: #fef2f2;
+    color: #dc2626;
+    box-shadow: 0 0 0 1px rgba(239, 68, 68, 0.2) inset;
+}
+
+/* Loaded State */
+#loader.loaded {
+    opacity: 0;
+    pointer-events: none;
+    transform: scale(1.05);
+}
+
+canvas {
+    max-width: 100% !important;
+}
