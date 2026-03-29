@@ -31,6 +31,8 @@
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="stylesheet" href="styles.css">
+    <!-- ExcelJS for Styled Excel Export -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.3.0/exceljs.min.js"></script>
 </head>
 
 <body
@@ -202,10 +204,15 @@
                 <div
                     class="p-8 border-b border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4 bg-ambient-800/30">
                     <h2 class="text-2xl font-bold text-white tracking-tight">Detailed Breakdown</h2>
-                    <div class="relative w-full max-w-sm">
-                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
-                        <input type="text" id="detailsSearch" placeholder="Search by teller, branch..."
-                            class="w-full bg-ambient-900 border border-zinc-700 text-white text-sm rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all">
+                    <div class="flex flex-col sm:flex-row items-center gap-4 w-full max-w-xl">
+                        <div class="relative w-full">
+                            <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
+                            <input type="text" id="detailsSearch" placeholder="Search by teller, branch..."
+                                class="w-full bg-ambient-900 border border-zinc-700 text-white text-sm rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all">
+                        </div>
+                        <button onclick="exportDetailsToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 active:scale-95 whitespace-nowrap">
+                            <i class="fas fa-file-excel"></i> Export Excel
+                        </button>
                     </div>
                 </div>
                 <div class="overflow-x-auto">
@@ -251,12 +258,15 @@
                     <!-- Sort Filter -->
                     <div class="relative w-full sm:w-auto">
                         <select id="areas-sort" class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs font-bold rounded-xl pl-4 pr-10 py-2.5 appearance-none cursor-pointer outline-none hover:border-zinc-500 transition-all">
-                            <option value="desc">Sort: Highest Gross</option>
-                            <option value="asc">Sort: Lowest Gross</option>
+                            <option value="desc">Sort: Highest Shift</option>
+                            <option value="asc">Sort: Lowest Shift</option>
                             <option value="alpha">Sort: Alphabetical (A-Z)</option>
                         </select>
                         <i class="fas fa-filter absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-xs"></i>
                     </div>
+                    <button onclick="exportAreasToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 active:scale-95">
+                        <i class="fas fa-file-excel"></i> Export
+                    </button>
                 </div>
             </div>
 
@@ -468,12 +478,15 @@
                             <!-- Supervisor Sort -->
                             <div class="relative w-full sm:w-auto">
                                 <select id="sync-spvr-sort" class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs font-bold rounded-xl pl-4 pr-10 py-2.5 appearance-none cursor-pointer outline-none transition-all hover:border-zinc-500">
-                                    <option value="desc">Sort: Highest Total</option>
-                                    <option value="asc">Sort: Lowest Total</option>
+                                    <option value="desc">Sort: Highest Shift</option>
+                                    <option value="asc">Sort: Lowest Shift</option>
                                     <option value="alpha">Sort: Alphabetical (A-Z)</option>
                                 </select>
                                 <i class="fas fa-arrow-down-wide-short absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-xs"></i>
                             </div>
+                            <button onclick="exportSyncToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 active:scale-95">
+                                <i class="fas fa-file-excel"></i> CSV Export
+                            </button>
                         </div>
                     </div>
 

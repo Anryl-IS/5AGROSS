@@ -21,6 +21,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const syncSearchInput = document.getElementById('syncSearch');
     if (syncSearchInput) syncSearchInput.addEventListener('input', handleSyncSearch);
+
+    const areasSearchInput = document.getElementById('areas-search');
+    if (areasSearchInput) areasSearchInput.addEventListener('input', renderAreas);
+
+    const areasSortBtn = document.getElementById('areas-sort');
+    if (areasSortBtn) areasSortBtn.addEventListener('change', renderAreas);
+
+    const syncSpvrSortBtn = document.getElementById('sync-spvr-sort');
+    if (syncSpvrSortBtn) syncSpvrSortBtn.addEventListener('change', renderSyncSpvrGrid);
+
+    const syncSpvrSearchBtn = document.getElementById('sync-spvr-search');
+    if (syncSpvrSearchBtn) syncSpvrSearchBtn.addEventListener('input', renderSyncSpvrGrid);
 });
 
 // Tab Nav
@@ -204,27 +216,15 @@ function renderOverview() {
 
     const dailyTotals = dates.map((_, i) => dashboardData.reduce((sum, t) => sum + (t.dailySales[i] || 0), 0));
 
-    const grad = ctx.createLinearGradient(0, 0, 0, 400);
-    grad.addColorStop(0, 'rgba(234, 179, 8, 0.4)'); // Gold
-    grad.addColorStop(1, 'rgba(234, 179, 8, 0)');
-
     charts.trend = new Chart(ctx, {
-        type: 'line',
+        type: 'bar',
         data: {
             labels: dates,
             datasets: [{
                 label: 'Gross',
                 data: dailyTotals,
-                borderColor: '#eab308', // gold-500
-                backgroundColor: grad,
-                borderWidth: 3,
-                fill: true,
-                tension: 0.3,
-                pointBackgroundColor: '#18181b',
-                pointBorderColor: '#eab308',
-                pointBorderWidth: 2,
-                pointRadius: 4,
-                pointHoverRadius: 6
+                backgroundColor: '#eab308', // gold-500
+                borderRadius: 4
             }]
         },
         options: {
@@ -318,10 +318,24 @@ function renderAreas() {
         if (t.isActive) areaStats[t.supervisor].activeTellers += 1;
     });
 
-    const cardsHtml = Object.values(areaStats)
-        .sort((a, b) => b.curr - a.curr)
-        .map(area => {
-            const diff = area.curr - area.prev;
+    const sortVal = document.getElementById('areas-sort')?.value || 'desc';
+    const searchVal = document.getElementById('areas-search')?.value.toLowerCase() || '';
+
+    let sortedAreas = Object.values(areaStats).filter(area => 
+        area.name.toLowerCase().includes(searchVal)
+    );
+    
+    if (sortVal === 'desc') sortedAreas.sort((a, b) => (b.curr - b.prev) - (a.curr - a.prev));
+    else if (sortVal === 'asc') sortedAreas.sort((a, b) => (a.curr - a.prev) - (b.curr - b.prev));
+    else if (sortVal === 'alpha') sortedAreas.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+
+    if (sortedAreas.length === 0) {
+        grid.innerHTML = '<p class="text-zinc-500 italic col-span-full text-center p-10">No areas match your filter.</p>';
+        return;
+    }
+
+    const cardsHtml = sortedAreas.map(area => {
+        const diff = area.curr - area.prev;
             const pct = area.prev > 0 ? (diff / area.prev) * 100 : 0;
             const isUp = diff >= 0;
 
@@ -626,8 +640,9 @@ async function fetchSyncData() {
 
     } catch (err) {
         console.error('Sync failed', err);
-        const tbody = document.getElementById('sync-table-body');
-        if (tbody) tbody.innerHTML = `<tr><td colspan="4" class="px-8 py-10 text-center text-red-500 font-bold uppercase tracking-widest"><i class="fas fa-exclamation-triangle mr-2"></i> Failed to synchronize remote datasets.</td></tr>`;
+        useFallbackSyncData();
+        updateStatus('Offline Sync Demo', false);
+        isSyncFetched = true; // Still allow viewing demo data
     } finally {
         if (loader) loader.classList.add('hidden');
         if (content) content.classList.remove('hidden');
@@ -734,38 +749,8 @@ function renderSyncResults(feb, mar) {
     }
 
     // Render Supervisor Grid
-    const spvrGrid = document.getElementById('sync-spvr-grid');
-    if (spvrGrid) {
-        spvrGrid.innerHTML = spvrRows.map(s => {
-            const diff = s.mar - s.feb;
-            const pct = s.feb > 0 ? (diff / s.feb) * 100 : 0;
-            const isUp = diff >= 0;
-            return `
-                <div class="glass-card p-5 rounded-2xl border border-zinc-800 flex flex-col group hover:border-zinc-700 transition-all">
-                    <div class="flex justify-between items-center mb-3">
-                        <span class="text-[10px] font-black text-zinc-500 uppercase tracking-[0.15em] truncate pr-2">${s.name}</span>
-                        <span class="text-[10px] font-bold px-2 py-0.5 rounded ${isUp ? 'bg-emerald-500/10 text-emerald-500' : 'bg-red-500/10 text-red-500'}">
-                            ${isUp ? '+' : ''}${pct.toFixed(1)}%
-                        </span>
-                    </div>
-                    <div class="flex justify-between items-end">
-                        <div>
-                            <p class="text-[10px] text-zinc-600 font-bold mb-0.5 uppercase">Performance</p>
-                            <div class="flex items-baseline gap-1">
-                                <span class="text-xs text-zinc-500">₱</span>
-                                <span class="text-base font-black text-white whitespace-nowrap">${s.mar.toLocaleString()}</span>
-                            </div>
-                        </div>
-                        <div class="text-right">
-                            <span class="${isUp ? 'text-emerald-500' : 'text-red-500'} text-[11px] font-bold tabular-nums">
-                                ${isUp ? '<i class="fas fa-caret-up"></i>' : '<i class="fas fa-caret-down"></i>'} ₱${Math.abs(diff).toLocaleString()}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            `;
-        }).join('');
-    }
+    window.currentSyncSpvrMap = spvrMap;
+    renderSyncSpvrGrid();
 
     // Render Sync Chart
     const ctxSync = document.getElementById('syncChart')?.getContext('2d');
@@ -796,20 +781,27 @@ function renderSyncResults(feb, mar) {
                 ]
             },
             options: {
+                indexAxis: 'y',
                 responsive: true,
                 maintainAspectRatio: false,
                 plugins: {
-                    legend: { labels: { color: '#a1a1aa' } },
+                    legend: { position: 'top', labels: { color: '#a1a1aa', boxWidth: 12, font: { size: 10, weight: 'bold' } } },
                     tooltip: {
                         backgroundColor: '#18181b',
                         titleColor: '#fff',
                         bodyColor: '#a1a1aa',
-                        callbacks: { label: (ctx) => ' ₱' + ctx.raw.toLocaleString(undefined, { minimumFractionDigits: 2 }) }
+                        callbacks: { label: (ctx) => ` ${ctx.dataset.label}: ₱${ctx.raw.toLocaleString()}` }
                     }
                 },
                 scales: {
-                    x: { grid: { display: false }, ticks: { color: '#a1a1aa', font: { size: 10 } } },
-                    y: { grid: { color: '#27272a' }, ticks: { color: '#a1a1aa', callback: (v) => '₱' + (v >= 1000 ? v / 1000 + 'k' : v) } }
+                    x: { 
+                        grid: { color: '#27272a' }, 
+                        ticks: { color: '#a1a1aa', font: { size: 9 }, callback: (v) => '₱' + (v >= 1000000 ? (v / 1000000) + 'M' : (v / 1000) + 'k') } 
+                    },
+                    y: { 
+                        grid: { display: false }, 
+                        ticks: { color: '#fff', font: { size: 10, weight: 'bold' } } 
+                    }
                 }
             }
         });
@@ -872,3 +864,181 @@ function handleSyncSearch(e) {
     );
     renderSyncTable(filtered);
 }
+
+function renderSyncSpvrGrid() {
+    const spvrGrid = document.getElementById('sync-spvr-grid');
+    if (!spvrGrid || !window.currentSyncSpvrMap) return;
+
+    const sortVal = document.getElementById('sync-spvr-sort')?.value || 'desc';
+    const searchVal = document.getElementById('sync-spvr-search')?.value.toLowerCase() || '';
+
+    let rows = Object.values(window.currentSyncSpvrMap).filter(s => 
+        s.name.toLowerCase().includes(searchVal)
+    );
+    
+    if (sortVal === 'desc') rows.sort((a, b) => (b.mar - b.feb) - (a.mar - a.feb));
+    else if (sortVal === 'asc') rows.sort((a, b) => (a.mar - a.feb) - (b.mar - b.feb));
+    else if (sortVal === 'alpha') rows.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
+
+    if (rows.length === 0) {
+        spvrGrid.innerHTML = `<div class="p-8 text-center text-zinc-500 italic border border-zinc-800 rounded-2xl">No supervisors match your search.</div>`;
+        return;
+    }
+
+    spvrGrid.innerHTML = rows.map(s => {
+        const diff = s.mar - s.feb;
+        const pct = s.feb > 0 ? (diff / s.feb) * 100 : (s.mar > 0 ? 100 : 0);
+        const isUp = diff >= 0;
+        return `
+            <div class="glass-card p-3 px-5 rounded-2xl border border-zinc-800/80 flex items-center justify-between group hover:border-zinc-700 hover:bg-zinc-800/20 transition-all">
+                <div class="flex items-center gap-4 w-1/3">
+                    <div class="w-8 h-8 rounded-lg bg-ambient-800 border border-zinc-700/50 flex items-center justify-center text-zinc-500 group-hover:text-gold-500 transition-colors">
+                        <i class="fas fa-id-badge text-sm"></i>
+                    </div>
+                    <span class="text-xs font-bold text-zinc-300 group-hover:text-white truncate">${s.name}</span>
+                </div>
+                
+                <div class="flex-1 flex items-center justify-center gap-8">
+                    <div class="text-right">
+                        <p class="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mb-0.5">Feb</p>
+                        <p class="text-xs font-medium text-zinc-500 tabular-nums">₱${s.feb.toLocaleString()}</p>
+                    </div>
+                    <div class="text-zinc-800"><i class="fas fa-chevron-right text-xs"></i></div>
+                    <div class="text-left">
+                        <p class="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mb-0.5">Mar</p>
+                        <div class="flex items-baseline gap-1">
+                             <p class="text-sm font-black text-white tabular-nums">₱${s.mar.toLocaleString()}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="w-1/4 flex flex-col items-end">
+                    <div class="flex items-center gap-2">
+                        <span class="${isUp ? 'text-emerald-400' : 'text-red-400'} text-sm font-black tabular-nums">
+                            ${isUp ? '+' : '-'}₱${Math.abs(diff).toLocaleString()}
+                        </span>
+                        <div class="px-2 py-0.5 rounded-md text-[10px] font-bold ${isUp ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}">
+                            ${isUp ? '↑' : '↓'} ${Math.abs(pct).toFixed(1)}%
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    }).join('');
+}
+
+function useFallbackSyncData() {
+    const spvrs = ['MAGUINDANAO SPVR POTS', 'LANAO SPVR TEDDY', 'NORTH COTABATO SPVR RAMSIE', 'SULTAN KUDARAT SPVR HARIF'];
+    const febData = spvrs.map(s => ({ supervisor: s, teller: `TELLER ${s.charAt(0)}`, total: 4000000 + Math.random() * 1000000 }));
+    const marData = spvrs.map(s => ({ supervisor: s, teller: `TELLER ${s.charAt(0)}`, total: 3800000 + Math.random() * 1500000 }));
+    renderSyncResults(febData, marData);
+}
+
+// ================= EXCEL EXPORT LOGIC =================
+function exportDetailsToExcel() {
+    const data = dashboardData.map(r => ({
+        'Teller Name': r.teller,
+        'Branch': r.branch,
+        'Supervisor': r.supervisor,
+        'Total Gross': r.total,
+        'Status': r.isActive ? 'Active' : 'Inactive'
+    }));
+    downloadExcel(data, 'LDS_Detailed_Breakdown');
+}
+
+function exportAreasToExcel() {
+    const sortVal = document.getElementById('areas-sort')?.value || 'desc';
+    const areaStats = {};
+    const mid = Math.floor(dates.length / 2);
+    
+    dashboardData.forEach(t => {
+        if (!areaStats[t.supervisor]) areaStats[t.supervisor] = { name: t.supervisor, prev: 0, curr: 0 };
+        areaStats[t.supervisor].prev += t.dailySales.slice(0, mid).reduce((a, b) => a + b, 0);
+        areaStats[t.supervisor].curr += t.dailySales.slice(mid, dates.length).reduce((a, b) => a + b, 0);
+    });
+
+    const rows = Object.values(areaStats).map(a => {
+        const diff = a.curr - a.prev;
+        return {
+            'Area/Supervisor': a.name,
+            'Previous Period': a.prev,
+            'Current Period': a.curr,
+            'Difference': diff,
+            'Shift %': a.prev > 0 ? ((diff / a.prev) * 100).toFixed(2) + '%' : '0%'
+        };
+    });
+
+    downloadExcel(rows, 'Area_Diagnostics');
+}
+
+function exportSyncToExcel() {
+    if (!window.currentSyncSpvrMap) return;
+    const rows = Object.values(window.currentSyncSpvrMap).map(s => {
+        const diff = s.mar - s.feb;
+        return {
+            'Supervisor': s.name,
+            'February Total': s.feb,
+            'March Total': s.mar,
+            'Net Shift': diff,
+            'Shift %': s.feb > 0 ? ((diff / s.feb) * 100).toFixed(2) + '%' : '0%'
+        };
+    });
+    downloadExcel(rows, 'Supervisor_Performance_Shift');
+}
+
+async function downloadExcel(data, filename) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('System Export');
+
+    // Header Style
+    const headerRow = worksheet.addRow(Object.keys(data[0]));
+    headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF18181B' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    });
+
+    // Content Rows
+    data.forEach(item => {
+        const row = worksheet.addRow(Object.values(item));
+        
+        // Find if this is a comparative row (contains Shift or Difference)
+        const keys = Object.keys(item);
+        keys.forEach((key, idx) => {
+            const cell = row.getCell(idx + 1);
+            const val = item[key];
+
+            // Auto-detect Currency and Format
+            if (typeof val === 'number' && (key.includes('Total') || key.includes('Gross') || key.includes('Difference') || key.includes('Shift') || key.includes('Period'))) {
+                cell.numFmt = '\"₱\"#,##0.00';
+            }
+
+            // Apply Conditional Colors (Primary Logic)
+            if (key.includes('Shift') || key.includes('Difference')) {
+                const numericVal = typeof val === 'string' ? parseFloat(val) : val;
+                if (numericVal > 0) {
+                    cell.font = { bold: true, color: { argb: 'FF10B981' } }; // emerald-500
+                } else if (numericVal < 0) {
+                    cell.font = { bold: true, color: { argb: 'FFEF4444' } }; // red-500
+                }
+            }
+        });
+    });
+
+    // Final Styling (Columns)
+    worksheet.columns.forEach(col => {
+        col.width = 24;
+    });
+
+    // Generate and Download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${filename}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    anchor.click();
+    window.URL.revokeObjectURL(url);
+}
+
+

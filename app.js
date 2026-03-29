@@ -325,9 +325,9 @@ function renderAreas() {
         area.name.toLowerCase().includes(searchVal)
     );
     
-    if (sortVal === 'desc') sortedAreas.sort((a, b) => b.curr - a.curr);
-    else if (sortVal === 'asc') sortedAreas.sort((a, b) => a.curr - b.curr);
-    else if (sortVal === 'alpha') sortedAreas.sort((a, b) => a.name.localeCompare(b.name));
+    if (sortVal === 'desc') sortedAreas.sort((a, b) => (b.curr - b.prev) - (a.curr - a.prev));
+    else if (sortVal === 'asc') sortedAreas.sort((a, b) => (a.curr - a.prev) - (b.curr - b.prev));
+    else if (sortVal === 'alpha') sortedAreas.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
     if (sortedAreas.length === 0) {
         grid.innerHTML = '<p class="text-zinc-500 italic col-span-full text-center p-10">No areas match your filter.</p>';
@@ -876,8 +876,8 @@ function renderSyncSpvrGrid() {
         s.name.toLowerCase().includes(searchVal)
     );
     
-    if (sortVal === 'desc') rows.sort((a, b) => b.mar - a.mar);
-    else if (sortVal === 'asc') rows.sort((a, b) => a.mar - b.mar);
+    if (sortVal === 'desc') rows.sort((a, b) => (b.mar - b.feb) - (a.mar - a.feb));
+    else if (sortVal === 'asc') rows.sort((a, b) => (a.mar - a.feb) - (b.mar - b.feb));
     else if (sortVal === 'alpha') rows.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
     if (rows.length === 0) {
@@ -933,3 +933,112 @@ function useFallbackSyncData() {
     const marData = spvrs.map(s => ({ supervisor: s, teller: `TELLER ${s.charAt(0)}`, total: 3800000 + Math.random() * 1500000 }));
     renderSyncResults(febData, marData);
 }
+
+// ================= EXCEL EXPORT LOGIC =================
+function exportDetailsToExcel() {
+    const data = dashboardData.map(r => ({
+        'Teller Name': r.teller,
+        'Branch': r.branch,
+        'Supervisor': r.supervisor,
+        'Total Gross': r.total,
+        'Status': r.isActive ? 'Active' : 'Inactive'
+    }));
+    downloadExcel(data, 'LDS_Detailed_Breakdown');
+}
+
+function exportAreasToExcel() {
+    const sortVal = document.getElementById('areas-sort')?.value || 'desc';
+    const areaStats = {};
+    const mid = Math.floor(dates.length / 2);
+    
+    dashboardData.forEach(t => {
+        if (!areaStats[t.supervisor]) areaStats[t.supervisor] = { name: t.supervisor, prev: 0, curr: 0 };
+        areaStats[t.supervisor].prev += t.dailySales.slice(0, mid).reduce((a, b) => a + b, 0);
+        areaStats[t.supervisor].curr += t.dailySales.slice(mid, dates.length).reduce((a, b) => a + b, 0);
+    });
+
+    const rows = Object.values(areaStats).map(a => {
+        const diff = a.curr - a.prev;
+        return {
+            'Area/Supervisor': a.name,
+            'Previous Period': a.prev,
+            'Current Period': a.curr,
+            'Difference': diff,
+            'Shift %': a.prev > 0 ? ((diff / a.prev) * 100).toFixed(2) + '%' : '0%'
+        };
+    });
+
+    downloadExcel(rows, 'Area_Diagnostics');
+}
+
+function exportSyncToExcel() {
+    if (!window.currentSyncSpvrMap) return;
+    const rows = Object.values(window.currentSyncSpvrMap).map(s => {
+        const diff = s.mar - s.feb;
+        return {
+            'Supervisor': s.name,
+            'February Total': s.feb,
+            'March Total': s.mar,
+            'Net Shift': diff,
+            'Shift %': s.feb > 0 ? ((diff / s.feb) * 100).toFixed(2) + '%' : '0%'
+        };
+    });
+    downloadExcel(rows, 'Supervisor_Performance_Shift');
+}
+
+async function downloadExcel(data, filename) {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('System Export');
+
+    // Header Style
+    const headerRow = worksheet.addRow(Object.keys(data[0]));
+    headerRow.eachCell((cell) => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF18181B' } };
+        cell.alignment = { vertical: 'middle', horizontal: 'center' };
+    });
+
+    // Content Rows
+    data.forEach(item => {
+        const row = worksheet.addRow(Object.values(item));
+        
+        // Find if this is a comparative row (contains Shift or Difference)
+        const keys = Object.keys(item);
+        keys.forEach((key, idx) => {
+            const cell = row.getCell(idx + 1);
+            const val = item[key];
+
+            // Auto-detect Currency and Format
+            if (typeof val === 'number' && (key.includes('Total') || key.includes('Gross') || key.includes('Difference') || key.includes('Shift') || key.includes('Period'))) {
+                cell.numFmt = '\"₱\"#,##0.00';
+            }
+
+            // Apply Conditional Colors (Primary Logic)
+            if (key.includes('Shift') || key.includes('Difference')) {
+                const numericVal = typeof val === 'string' ? parseFloat(val) : val;
+                if (numericVal > 0) {
+                    cell.font = { bold: true, color: { argb: 'FF10B981' } }; // emerald-500
+                } else if (numericVal < 0) {
+                    cell.font = { bold: true, color: { argb: 'FFEF4444' } }; // red-500
+                }
+            }
+        });
+    });
+
+    // Final Styling (Columns)
+    worksheet.columns.forEach(col => {
+        col.width = 24;
+    });
+
+    // Generate and Download
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `${filename}_${new Date().toISOString().split('T')[0]}.xlsx`;
+    anchor.click();
+    window.URL.revokeObjectURL(url);
+}
+
+
