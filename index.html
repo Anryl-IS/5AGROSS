@@ -236,9 +236,28 @@
 
         <!-- ================= TAB: AREA GROSS ================= -->
         <section id="tab-areas" class="tab-content hidden">
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold text-white tracking-tight">Area Diagnostics</h2>
-                <p class="text-zinc-500 mt-1 font-medium">Comparative 7-day evaluation sorted per operational area.</p>
+            <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white tracking-tight">Area Diagnostics</h2>
+                    <p class="text-zinc-500 mt-1 font-medium">Comparative evaluation sorted per operational area.</p>
+                </div>
+                <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
+                    <!-- Search Filter -->
+                    <div class="relative w-full sm:w-64">
+                         <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-xs"></i>
+                         <input type="text" id="areas-search" placeholder="Filter area..." 
+                             class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs rounded-xl pl-10 pr-4 py-2.5 focus:border-gold-500 outline-none transition-all">
+                    </div>
+                    <!-- Sort Filter -->
+                    <div class="relative w-full sm:w-auto">
+                        <select id="areas-sort" class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs font-bold rounded-xl pl-4 pr-10 py-2.5 appearance-none cursor-pointer outline-none hover:border-zinc-500 transition-all">
+                            <option value="desc">Sort: Highest Gross</option>
+                            <option value="asc">Sort: Lowest Gross</option>
+                            <option value="alpha">Sort: Alphabetical (A-Z)</option>
+                        </select>
+                        <i class="fas fa-filter absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-xs"></i>
+                    </div>
+                </div>
             </div>
 
             <div id="areas-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
@@ -437,15 +456,32 @@
 
                 <!-- Supervisor Summary Chart/Grid -->
                 <div class="mb-8">
-                    <div class="flex justify-between items-center mb-6">
+                    <div class="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
                         <h2 class="text-xl font-bold text-white tracking-tight">Supervisor Performance Shift</h2>
+                        <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto z-10">
+                            <!-- Supervisor Search -->
+                            <div class="relative w-full sm:w-64">
+                                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-xs"></i>
+                                <input type="text" id="sync-spvr-search" placeholder="Search supervisor..." 
+                                    class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs rounded-xl pl-10 pr-4 py-2.5 focus:border-gold-500 outline-none transition-all">
+                            </div>
+                            <!-- Supervisor Sort -->
+                            <div class="relative w-full sm:w-auto">
+                                <select id="sync-spvr-sort" class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs font-bold rounded-xl pl-4 pr-10 py-2.5 appearance-none cursor-pointer outline-none transition-all hover:border-zinc-500">
+                                    <option value="desc">Sort: Highest Total</option>
+                                    <option value="asc">Sort: Lowest Total</option>
+                                    <option value="alpha">Sort: Alphabetical (A-Z)</option>
+                                </select>
+                                <i class="fas fa-arrow-down-wide-short absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-xs"></i>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="glass-card p-8 rounded-3xl border border-zinc-800 mb-6 h-[400px]">
+                    <div class="glass-card p-6 rounded-3xl border border-zinc-800 mb-6 h-[500px]">
                         <canvas id="syncChart"></canvas>
                     </div>
 
-                    <div id="sync-spvr-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    <div id="sync-spvr-grid" class="flex flex-col gap-3">
                         <!-- Injected via JS -->
                     </div>
                 </div>
