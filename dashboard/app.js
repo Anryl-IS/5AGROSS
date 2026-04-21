@@ -1,7 +1,7 @@
 const BASE_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHNgLs14x9JzMkkOW8eQHCeXon0n_rsjFVuDHymx2mmgkB5WV8_WkOvkF9cvmAuE8N9usedhTdqbH8/pub?gid=0&single=true&output=csv';
-const FEB_P1_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHNgLs14x9JzMkkOW8eQHCeXon0n_rsjFVuDHymx2mmgkB5WV8_WkOvkF9cvmAuE8N9usedhTdqbH8/pub?gid=811706992&single=true&output=csv';
-const FEB_P2_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHNgLs14x9JzMkkOW8eQHCeXon0n_rsjFVuDHymx2mmgkB5WV8_WkOvkF9cvmAuE8N9usedhTdqbH8/pub?gid=130106578&single=true&output=csv';
-const MAR_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHNgLs14x9JzMkkOW8eQHCeXon0n_rsjFVuDHymx2mmgkB5WV8_WkOvkF9cvmAuE8N9usedhTdqbH8/pub?gid=1232459230&single=true&output=csv';
+const PREV_P1_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHNgLs14x9JzMkkOW8eQHCeXon0n_rsjFVuDHymx2mmgkB5WV8_WkOvkF9cvmAuE8N9usedhTdqbH8/pub?gid=0&single=true&output=csv';
+const PREV_P2_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHNgLs14x9JzMkkOW8eQHCeXon0n_rsjFVuDHymx2mmgkB5WV8_WkOvkF9cvmAuE8N9usedhTdqbH8/pub?gid=0&single=true&output=csv';
+const CURR_CSV_URL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vTHNgLs14x9JzMkkOW8eQHCeXon0n_rsjFVuDHymx2mmgkB5WV8_WkOvkF9cvmAuE8N9usedhTdqbH8/pub?gid=0&single=true&output=csv';
 // State
 let dashboardData = [];
 let dates = [];
@@ -14,7 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Chart.defaults.color = '#a1a1aa'; // zinc-400
 
     setupTabs();
-    fetchData();
+    setupLogin();
 
     const searchInput = document.getElementById('detailsSearch');
     if (searchInput) searchInput.addEventListener('input', handleSearch);
@@ -24,6 +24,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const areasSearchInput = document.getElementById('areas-search');
     if (areasSearchInput) areasSearchInput.addEventListener('input', renderAreas);
+
+    const statusFilter = document.getElementById('statusFilter');
+    if (statusFilter) statusFilter.addEventListener('change', handleSearch);
 
     const areasSortBtn = document.getElementById('areas-sort');
     if (areasSortBtn) areasSortBtn.addEventListener('change', renderAreas);
@@ -67,6 +70,45 @@ function setupTabs() {
                 fetchSyncData();
             }
         });
+    });
+}
+
+// Login Handling
+function setupLogin() {
+    const loginForm = document.getElementById('login-form');
+    if (!loginForm) return;
+
+    loginForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const user = document.getElementById('username').value;
+        const pass = document.getElementById('password').value;
+        const errorEl = document.getElementById('login-error');
+
+        // Simple mock authentication
+        if (user === 'admin' && pass === '123') {
+            if (errorEl) errorEl.classList.add('hidden');
+            
+            // Success animation
+            const loginScreen = document.getElementById('login-screen');
+            loginScreen.classList.add('opacity-0', 'scale-105', 'pointer-events-none');
+            loginScreen.style.transition = 'all 0.6s cubic-bezier(0.16, 1, 0.3, 1)';
+            
+            setTimeout(() => {
+                loginScreen.classList.add('hidden');
+                const mainContent = document.getElementById('main-content');
+                mainContent.classList.remove('hidden');
+                mainContent.classList.add('flex', 'animate-fade-in');
+                
+                // Now start fetching data
+                fetchData();
+            }, 500);
+        } else {
+            if (errorEl) {
+                errorEl.classList.remove('hidden');
+                errorEl.classList.add('animate-shake');
+                setTimeout(() => errorEl.classList.remove('animate-shake'), 500);
+            }
+        }
     });
 }
 
@@ -223,7 +265,7 @@ function renderOverview() {
             datasets: [{
                 label: 'Gross',
                 data: dailyTotals,
-                backgroundColor: '#eab308', // gold-500
+                backgroundColor: '#ef4444', // red-500
                 borderRadius: 4
             }]
         },
@@ -259,7 +301,7 @@ function renderDetails(data) {
         <tr class="hover:bg-ambient-800/40 transition-colors group">
             <td class="px-8 py-5 whitespace-nowrap">
                 <div class="flex items-center gap-3">
-                    <div class="w-8 h-8 rounded-lg ${t.isActive ? 'bg-gold-500/10 text-gold-500' : 'bg-zinc-800 text-zinc-500'} flex items-center justify-center font-bold text-xs ring-1 ring-inset ${t.isActive ? 'ring-gold-500/30' : 'ring-zinc-700/50'}">
+                    <div class="w-8 h-8 rounded-lg ${t.isActive ? 'bg-red-500/10 text-red-500' : 'bg-zinc-800 text-zinc-500'} flex items-center justify-center font-bold text-xs ring-1 ring-inset ${t.isActive ? 'ring-red-500/30' : 'ring-zinc-700/50'}">
                         ${t.teller.charAt(0)}
                     </div>
                     <div>
@@ -283,13 +325,19 @@ function renderDetails(data) {
     `).join('');
 }
 
-function handleSearch(e) {
-    const q = e.target.value.toLowerCase();
-    const filtered = dashboardData.filter(t =>
-        t.teller.toLowerCase().includes(q) ||
-        t.address.toLowerCase().includes(q) ||
-        t.supervisor.toLowerCase().includes(q)
-    );
+function handleSearch() {
+    const q = document.getElementById('detailsSearch')?.value.toLowerCase() || '';
+    const status = document.getElementById('statusFilter')?.value || 'all';
+
+    const filtered = dashboardData.filter(t => {
+        const matchesQuery = t.teller.toLowerCase().includes(q) ||
+            t.address.toLowerCase().includes(q) ||
+            t.supervisor.toLowerCase().includes(q);
+
+        if (status === 'active') return matchesQuery && t.isActive;
+        if (status === 'offline') return matchesQuery && !t.isActive;
+        return matchesQuery;
+    });
     renderDetails(filtered);
 }
 
@@ -479,7 +527,7 @@ function renderComparison() {
                     {
                         label: 'Current Period',
                         data: currDailySum,
-                        backgroundColor: '#eab308',
+                        backgroundColor: '#ef4444',
                         borderRadius: 4
                     },
                     {
@@ -614,28 +662,28 @@ async function fetchSyncData() {
             return await Promise.any(endpoints.map(fetchWithValidation));
         };
 
-        const [febP1Raw, febP2Raw, marRaw] = await Promise.all([
-            fetchFile(FEB_P1_CSV_URL),
-            fetchFile(FEB_P2_CSV_URL),
-            fetchFile(MAR_CSV_URL)
+        const [prevP1Raw, prevP2Raw, currRaw] = await Promise.all([
+            fetchFile(PREV_P1_CSV_URL),
+            fetchFile(PREV_P2_CSV_URL),
+            fetchFile(CURR_CSV_URL)
         ]);
 
-        const febP1Data = parseSyncCSV(febP1Raw);
-        const febP2Data = parseSyncCSV(febP2Raw);
+        const prevP1Data = parseSyncCSV(prevP1Raw);
+        const prevP2Data = parseSyncCSV(prevP2Raw);
 
-        const febCombined = {};
-        [...febP1Data, ...febP2Data].forEach(t => {
+        const prevCombined = {};
+        [...prevP1Data, ...prevP2Data].forEach(t => {
             const key = `${t.supervisor}||${t.teller}`;
-            if (!febCombined[key]) {
-                febCombined[key] = { supervisor: t.supervisor, teller: t.teller, total: 0 };
+            if (!prevCombined[key]) {
+                prevCombined[key] = { supervisor: t.supervisor, teller: t.teller, total: 0 };
             }
-            febCombined[key].total += t.total;
+            prevCombined[key].total += t.total;
         });
-        const febData = Object.values(febCombined);
+        const prevData = Object.values(prevCombined);
 
-        const marData = parseSyncCSV(marRaw);
+        const currData = parseSyncCSV(currRaw);
 
-        renderSyncResults(febData, marData);
+        renderSyncResults(prevData, currData);
         isSyncFetched = true;
 
     } catch (err) {
@@ -679,13 +727,13 @@ function parseSyncCSV(csvContent) {
     return tempResults;
 }
 
-function renderSyncResults(feb, mar) {
-    const febTotal = feb.reduce((s, t) => s + t.total, 0);
-    const marTotal = mar.reduce((s, t) => s + t.total, 0);
-    const variance = marTotal - febTotal;
+function renderSyncResults(prev, curr) {
+    const prevTotal = prev.reduce((s, t) => s + t.total, 0);
+    const currTotal = curr.reduce((s, t) => s + t.total, 0);
+    const variance = currTotal - prevTotal;
 
-    animateNumber('sync-feb-total', febTotal, true);
-    animateNumber('sync-mar-total', marTotal, true);
+    animateNumber('sync-feb-total', prevTotal, true);
+    animateNumber('sync-mar-total', currTotal, true);
     animateNumber('sync-variance-amount', Math.abs(variance), true);
 
     const varSymbol = document.getElementById('sync-variance-symbol');
@@ -694,7 +742,7 @@ function renderSyncResults(feb, mar) {
         varSymbol.className = variance >= 0 ? 'text-xl text-emerald-500 font-bold' : 'text-xl text-red-500 font-bold';
     }
 
-    const varPct = febTotal > 0 ? (variance / febTotal) * 100 : 0;
+    const varPct = prevTotal > 0 ? (variance / prevTotal) * 100 : 0;
     const varPctEl = document.getElementById('sync-variance-pct');
     if (varPctEl) {
         varPctEl.innerText = `${variance >= 0 ? '+' : ''}${varPct.toFixed(1)}%`;
@@ -705,26 +753,26 @@ function renderSyncResults(feb, mar) {
     const map = {};
     const spvrMap = {};
 
-    feb.forEach(t => {
+    prev.forEach(t => {
         const key = `${t.supervisor}||${t.teller}`;
-        map[key] = { name: t.teller, spvr: t.supervisor, feb: t.total, mar: 0 };
+        map[key] = { name: t.teller, spvr: t.supervisor, prev: t.total, curr: 0 };
 
-        if (!spvrMap[t.supervisor]) spvrMap[t.supervisor] = { name: t.supervisor, feb: 0, mar: 0 };
-        spvrMap[t.supervisor].feb += t.total;
+        if (!spvrMap[t.supervisor]) spvrMap[t.supervisor] = { name: t.supervisor, prev: 0, curr: 0 };
+        spvrMap[t.supervisor].prev += t.total;
     });
-    mar.forEach(t => {
+    curr.forEach(t => {
         const key = `${t.supervisor}||${t.teller}`;
         if (map[key]) {
-            map[key].mar += t.total;
+            map[key].curr += t.total;
         } else {
-            map[key] = { name: t.teller, spvr: t.supervisor, feb: 0, mar: t.total };
+            map[key] = { name: t.teller, spvr: t.supervisor, prev: 0, curr: t.total };
         }
 
-        if (!spvrMap[t.supervisor]) spvrMap[t.supervisor] = { name: t.supervisor, feb: 0, mar: 0 };
-        spvrMap[t.supervisor].mar += t.total;
+        if (!spvrMap[t.supervisor]) spvrMap[t.supervisor] = { name: t.supervisor, prev: 0, curr: 0 };
+        spvrMap[t.supervisor].curr += t.total;
     });
 
-    const spvrRows = Object.values(spvrMap).sort((a, b) => b.mar - a.mar);
+    const spvrRows = Object.values(spvrMap).sort((a, b) => b.curr - a.curr);
 
     // Insights Generation
     const insightsEl = document.getElementById('sync-insights-content');
@@ -732,16 +780,16 @@ function renderSyncResults(feb, mar) {
         if (spvrRows.length === 0) {
             insightsEl.innerHTML = '<p>No data available to generate insights.</p>';
         } else {
-            const growthSpvrs = spvrRows.filter(s => s.mar > s.feb).sort((a, b) => (b.mar - b.feb) - (a.mar - a.feb));
-            const deficitSpvrs = spvrRows.filter(s => s.mar < s.feb).sort((a, b) => (a.mar - a.feb) - (b.mar - b.feb));
+            const growthSpvrs = spvrRows.filter(s => s.curr > s.prev).sort((a, b) => (b.curr - b.prev) - (a.curr - a.prev));
+            const deficitSpvrs = spvrRows.filter(s => s.curr < s.prev).sort((a, b) => (a.curr - a.prev) - (b.curr - b.prev));
 
-            let insightHtml = `<p>Overall network performance shifted by <strong class="${variance >= 0 ? 'text-emerald-400' : 'text-red-400'}">${variance >= 0 ? 'an increase' : 'a decrease'} of ₱${Math.abs(variance).toLocaleString()} (${Math.abs(varPct).toFixed(1)}%)</strong> from February to March.</p>`;
+            let insightHtml = `<p>Overall network performance shifted by <strong class="${variance >= 0 ? 'text-emerald-400' : 'text-red-400'}">${variance >= 0 ? 'an increase' : 'a decrease'} of ₱${Math.abs(variance).toLocaleString()} (${Math.abs(varPct).toFixed(1)}%)</strong> from Previous to Current period.</p>`;
 
             if (growthSpvrs.length > 0) {
-                insightHtml += `<p><strong>${growthSpvrs[0].name}</strong> led the expansion with the highest raw growth (+₱${(growthSpvrs[0].mar - growthSpvrs[0].feb).toLocaleString()}).</p>`;
+                insightHtml += `<p><strong>${growthSpvrs[0].name}</strong> led the expansion with the highest raw growth (+₱${(growthSpvrs[0].curr - growthSpvrs[0].prev).toLocaleString()}).</p>`;
             }
             if (deficitSpvrs.length > 0) {
-                insightHtml += `<p class="mt-1">Conversely, <strong>${deficitSpvrs[0].name}</strong> experienced the largest contraction (-₱${Math.abs(deficitSpvrs[0].mar - deficitSpvrs[0].feb).toLocaleString()}).</p>`;
+                insightHtml += `<p class="mt-1">Conversely, <strong>${deficitSpvrs[0].name}</strong> experienced the largest contraction (-₱${Math.abs(deficitSpvrs[0].curr - deficitSpvrs[0].prev).toLocaleString()}).</p>`;
             }
 
             insightsEl.innerHTML = insightHtml;
@@ -757,9 +805,9 @@ function renderSyncResults(feb, mar) {
     if (ctxSync) {
         if (charts.sync) charts.sync.destroy();
 
-        const labels = Object.values(spvrMap).sort((a, b) => b.mar - a.mar).map(s => s.name);
-        const dataFeb = Object.values(spvrMap).sort((a, b) => b.mar - a.mar).map(s => s.feb);
-        const dataMar = Object.values(spvrMap).sort((a, b) => b.mar - a.mar).map(s => s.mar);
+        const labels = Object.values(spvrMap).sort((a, b) => b.curr - a.curr).map(s => s.name);
+        const dataPrev = Object.values(spvrMap).sort((a, b) => b.curr - a.curr).map(s => s.prev);
+        const dataCurr = Object.values(spvrMap).sort((a, b) => b.curr - a.curr).map(s => s.curr);
 
         charts.sync = new Chart(ctxSync, {
             type: 'bar',
@@ -767,14 +815,14 @@ function renderSyncResults(feb, mar) {
                 labels: labels,
                 datasets: [
                     {
-                        label: 'March',
-                        data: dataMar,
+                        label: 'Current Period',
+                        data: dataCurr,
                         backgroundColor: '#10b981', // emerald-500
                         borderRadius: 4
                     },
                     {
-                        label: 'February',
-                        data: dataFeb,
+                        label: 'Previous Period',
+                        data: dataPrev,
                         backgroundColor: '#27272a', // zinc-700
                         borderRadius: 4
                     }
@@ -807,7 +855,7 @@ function renderSyncResults(feb, mar) {
         });
     }
 
-    syncTableData = Object.values(map).sort((a, b) => b.mar - a.mar);
+    syncTableData = Object.values(map).sort((a, b) => b.curr - a.curr);
     renderSyncTable(syncTableData);
 }
 
@@ -823,8 +871,8 @@ function renderSyncTable(rows) {
     }
 
     tbody.innerHTML = rows.map(r => {
-        const diff = r.mar - r.feb;
-        const pct = r.feb > 0 ? (diff / r.feb) * 100 : (r.mar > 0 ? 100 : 0);
+        const diff = r.curr - r.prev;
+        const pct = r.prev > 0 ? (diff / r.prev) * 100 : (r.curr > 0 ? 100 : 0);
         const isUp = diff >= 0;
         return `
             <tr class="hover:bg-ambient-800/40 transition-colors group">
@@ -839,8 +887,8 @@ function renderSyncTable(rows) {
                         </div>
                     </div>
                 </td>
-                <td class="px-8 py-5 text-right font-medium text-zinc-400 tabular-nums">₱${r.feb.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                <td class="px-8 py-5 text-right font-bold text-white tabular-nums">₱${r.mar.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                <td class="px-8 py-5 text-right font-medium text-zinc-400 tabular-nums">₱${r.prev.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                <td class="px-8 py-5 text-right font-bold text-white tabular-nums">₱${r.curr.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
                 <td class="px-8 py-5 text-right">
                     <div class="flex flex-col items-end gap-1">
                         <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-black tabular-nums ${isUp ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}">
@@ -876,8 +924,8 @@ function renderSyncSpvrGrid() {
         s.name.toLowerCase().includes(searchVal)
     );
     
-    if (sortVal === 'desc') rows.sort((a, b) => (b.mar - b.feb) - (a.mar - a.feb));
-    else if (sortVal === 'asc') rows.sort((a, b) => (a.mar - a.feb) - (b.mar - b.feb));
+    if (sortVal === 'desc') rows.sort((a, b) => (b.curr - b.prev) - (a.curr - a.prev));
+    else if (sortVal === 'asc') rows.sort((a, b) => (a.curr - a.prev) - (b.curr - b.prev));
     else if (sortVal === 'alpha') rows.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
     if (rows.length === 0) {
@@ -892,7 +940,7 @@ function renderSyncSpvrGrid() {
         return `
             <div class="glass-card p-3 px-5 rounded-2xl border border-zinc-800/80 flex items-center justify-between group hover:border-zinc-700 hover:bg-zinc-800/20 transition-all">
                 <div class="flex items-center gap-4 w-1/3">
-                    <div class="w-8 h-8 rounded-lg bg-ambient-800 border border-zinc-700/50 flex items-center justify-center text-zinc-500 group-hover:text-gold-500 transition-colors">
+                    <div class="w-8 h-8 rounded-lg bg-ambient-800 border border-zinc-700/50 flex items-center justify-center text-zinc-500 group-hover:text-red-500 transition-colors">
                         <i class="fas fa-id-badge text-sm"></i>
                     </div>
                     <span class="text-xs font-bold text-zinc-300 group-hover:text-white truncate">${s.name}</span>
@@ -900,14 +948,14 @@ function renderSyncSpvrGrid() {
                 
                 <div class="flex-1 flex items-center justify-center gap-8">
                     <div class="text-right">
-                        <p class="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mb-0.5">Feb</p>
-                        <p class="text-xs font-medium text-zinc-500 tabular-nums">₱${s.feb.toLocaleString()}</p>
+                        <p class="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mb-0.5">Previous</p>
+                        <p class="text-xs font-medium text-zinc-500 tabular-nums">₱${s.prev.toLocaleString()}</p>
                     </div>
                     <div class="text-zinc-800"><i class="fas fa-chevron-right text-xs"></i></div>
                     <div class="text-left">
-                        <p class="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mb-0.5">Mar</p>
+                        <p class="text-[9px] text-zinc-600 font-bold uppercase tracking-widest mb-0.5">Current</p>
                         <div class="flex items-baseline gap-1">
-                             <p class="text-sm font-black text-white tabular-nums">₱${s.mar.toLocaleString()}</p>
+                             <p class="text-sm font-black text-white tabular-nums">₱${s.curr.toLocaleString()}</p>
                         </div>
                     </div>
                 </div>
@@ -932,6 +980,114 @@ function useFallbackSyncData() {
     const febData = spvrs.map(s => ({ supervisor: s, teller: `TELLER ${s.charAt(0)}`, total: 4000000 + Math.random() * 1000000 }));
     const marData = spvrs.map(s => ({ supervisor: s, teller: `TELLER ${s.charAt(0)}`, total: 3800000 + Math.random() * 1500000 }));
     renderSyncResults(febData, marData);
+}
+
+async function exportComparisonToExcel() {
+    const days = dates.length;
+    const mid = Math.floor(days / 2);
+    if (days < 2) return;
+
+    let shiftData = {};
+    dashboardData.forEach(t => {
+        const pSum = t.dailySales.slice(0, mid).reduce((a, b) => a + b, 0);
+        const cSum = t.dailySales.slice(mid, days).reduce((a, b) => a + b, 0);
+        if (!shiftData[t.supervisor]) shiftData[t.supervisor] = { prev: 0, curr: 0, name: t.supervisor };
+        shiftData[t.supervisor].prev += pSum;
+        shiftData[t.supervisor].curr += cSum;
+    });
+
+    const shifts = Object.values(shiftData).map(s => {
+        s.diff = s.curr - s.prev;
+        s.pct = s.prev > 0 ? (s.diff / s.prev) * 100 : 0;
+        return s;
+    });
+
+    const increased = shifts.filter(s => s.diff >= 0).sort((a, b) => b.diff - a.diff);
+    const decreased = shifts.filter(s => s.diff < 0).sort((a, b) => a.diff - b.diff);
+
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Trajectory Analysis');
+
+    // Title Section
+    worksheet.mergeCells('A1:E2');
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = 'IMPERIAL GAMING - TRAJECTORY ANALYSIS REPORT';
+    titleCell.font = { size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF18181B' } };
+    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+
+    worksheet.mergeCells('A3:E3');
+    const subtitleCell = worksheet.getCell('A3');
+    subtitleCell.value = `Exported on: ${new Date().toLocaleString()} | Period: ${dates[0]} to ${dates[dates.length - 1]}`;
+    subtitleCell.font = { italic: true, size: 10, color: { argb: 'FF71717A' } };
+    subtitleCell.alignment = { horizontal: 'center' };
+
+    let currRow = 5;
+
+    // Growth Trajectory Table
+    const growthTitleRow = worksheet.getRow(currRow);
+    growthTitleRow.getCell(1).value = 'GROWTH TRAJECTORY (Net Positive Shift)';
+    growthTitleRow.getCell(1).font = { bold: true, size: 12, color: { argb: 'FF059669' } };
+    currRow++;
+
+    const headers = ['Operational Area / Supervisor', 'Previous Period (7D)', 'Current Period (7D)', 'Net Difference', 'Shift %'];
+    const growthHeaderRow = worksheet.addRow(headers);
+    growthHeaderRow.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF10B981' } };
+        cell.border = { bottom: { style: 'thin' } };
+    });
+    currRow++;
+
+    increased.forEach(s => {
+        const row = worksheet.addRow([s.name, s.prev, s.curr, s.diff, (s.pct / 100)]);
+        row.getCell(2).numFmt = '\"₱\"#,##0.00';
+        row.getCell(3).numFmt = '\"₱\"#,##0.00';
+        row.getCell(4).numFmt = '\"₱\"#,##0.00';
+        row.getCell(5).numFmt = '0.0%';
+        row.getCell(4).font = { color: { argb: 'FF059669' }, bold: true };
+        currRow++;
+    });
+
+    currRow += 2;
+
+    // Deficit Risk Table
+    const deficitTitleRow = worksheet.getRow(currRow);
+    deficitTitleRow.getCell(1).value = 'DEFICIT RISK (Net Negative Shift)';
+    deficitTitleRow.getCell(1).font = { bold: true, size: 12, color: { argb: 'FFDC2626' } };
+    currRow++;
+
+    const deficitHeaderRow = worksheet.addRow(headers);
+    deficitHeaderRow.eachCell(cell => {
+        cell.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFEF4444' } };
+        cell.border = { bottom: { style: 'thin' } };
+    });
+    currRow++;
+
+    decreased.forEach(s => {
+        const row = worksheet.addRow([s.name, s.prev, s.curr, s.diff, (s.pct / 100)]);
+        row.getCell(2).numFmt = '\"₱\"#,##0.00';
+        row.getCell(3).numFmt = '\"₱\"#,##0.00';
+        row.getCell(4).numFmt = '\"₱\"#,##0.00';
+        row.getCell(5).numFmt = '0.0%';
+        row.getCell(4).font = { color: { argb: 'FFDC2626' }, bold: true };
+        currRow++;
+    });
+
+    // Formatting
+    worksheet.columns.forEach(col => {
+        col.width = 30;
+    });
+
+    const buffer = await workbook.xlsx.writeBuffer();
+    const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+    const url = window.URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `LDS_Trajectory_Analysis_${new Date().toISOString().split('T')[0]}.xlsx`;
+    anchor.click();
+    window.URL.revokeObjectURL(url);
 }
 
 // ================= EXCEL EXPORT LOGIC =================
@@ -974,13 +1130,13 @@ function exportAreasToExcel() {
 function exportSyncToExcel() {
     if (!window.currentSyncSpvrMap) return;
     const rows = Object.values(window.currentSyncSpvrMap).map(s => {
-        const diff = s.mar - s.feb;
+        const diff = s.curr - s.prev;
         return {
             'Supervisor': s.name,
-            'February Total': s.feb,
-            'March Total': s.mar,
+            'Previous Period Total': s.prev,
+            'Current Period Total': s.curr,
             'Net Shift': diff,
-            'Shift %': s.feb > 0 ? ((diff / s.feb) * 100).toFixed(2) + '%' : '0%'
+            'Shift %': s.prev > 0 ? ((diff / s.prev) * 100).toFixed(2) + '%' : '0%'
         };
     });
     downloadExcel(rows, 'Supervisor_Performance_Shift');

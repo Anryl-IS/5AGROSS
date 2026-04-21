@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>5A GENERAL GROSS</title>
+    <title>IMPERIAL GAMING OPC GROSS</title>
     <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,7 +22,27 @@
                     fontFamily: { sans: ['"Inter"', 'sans-serif'] },
                     colors: {
                         ambient: { 900: '#09090b', 800: '#18181b', 700: '#27272a' },
-                        gold: { 400: '#facc15', 500: '#eab308', 600: '#ca8a04' }
+                        red: { 400: '#f87171', 500: '#ef4444', 600: '#dc2626' }
+                    },
+                    keyframes: {
+                        shake: {
+                            '0%, 100%': { transform: 'translateX(0)' },
+                            '25%': { transform: 'translateX(-5px)' },
+                            '75%': { transform: 'translateX(5px)' }
+                        },
+                        'fade-in-up': {
+                            '0%': { opacity: '0', transform: 'translateY(20px)' },
+                            '100%': { opacity: '1', transform: 'translateY(0)' }
+                        },
+                        'fade-in': {
+                            '0%': { opacity: '0' },
+                            '100%': { opacity: '1' }
+                        }
+                    },
+                    animation: {
+                        shake: 'shake 0.4s ease-in-out',
+                        'fade-in-up': 'fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) both',
+                        'fade-in': 'fade-in 1s ease-out both'
                     }
                 }
             }
@@ -36,11 +56,70 @@
 </head>
 
 <body
-    class="bg-ambient-900 text-zinc-300 antialiased overflow-x-hidden min-h-screen flex flex-col selection:bg-gold-500/30">
+    class="bg-ambient-900 text-zinc-300 antialiased overflow-x-hidden min-h-screen flex flex-col selection:bg-red-500/30">
+
+    <!-- Login Screen Overlay -->
+    <div id="login-screen" class="fixed inset-0 z-[100] flex items-center justify-center bg-ambient-900 overflow-hidden">
+        <!-- Ambient Glows for Login -->
+        <div class="absolute top-[-10%] left-[-10%] w-[500px] h-[500px] bg-red-500/10 blur-[150px] rounded-full pointer-events-none"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[500px] h-[500px] bg-red-600/10 blur-[150px] rounded-full pointer-events-none"></div>
+
+        <div class="glass-card w-full max-w-[420px] p-10 rounded-[2.5rem] border border-zinc-800 shadow-2xl relative z-10 animate-fade-in-up">
+            <div class="flex flex-col items-center mb-10">
+                <div class="w-24 h-24 mb-6 relative">
+                    <div class="absolute inset-0 bg-red-500/20 blur-2xl rounded-full"></div>
+                    <img src="logo.png" alt="Logo" class="w-full h-full object-contain relative z-10">
+                </div>
+                <h2 class="text-2xl font-black text-white tracking-tight">Access Imperial Gaming</h2>
+                <p class="text-zinc-500 text-sm mt-2 font-medium">Please enter your credentials to continue</p>
+            </div>
+
+            <form id="login-form" class="space-y-6">
+                <div>
+                    <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 ml-1">Username</label>
+                    <div class="relative">
+                        <i class="fas fa-user absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 text-sm"></i>
+                        <input type="text" id="username" required 
+                            class="w-full bg-zinc-900/50 border border-zinc-800 text-white rounded-2xl pl-11 pr-4 py-4 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all placeholder-zinc-700" 
+                            placeholder="Your account name">
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-2 ml-1">Password</label>
+                    <div class="relative">
+                        <i class="fas fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 text-sm"></i>
+                        <input type="password" id="password" required
+                            class="w-full bg-zinc-900/50 border border-zinc-800 text-white rounded-2xl pl-11 pr-4 py-4 focus:outline-none focus:border-red-500/50 focus:ring-1 focus:ring-red-500/50 transition-all placeholder-zinc-700"
+                            placeholder="••••••••">
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between px-1">
+                    <label class="flex items-center gap-2 cursor-pointer group">
+                        <input type="checkbox" class="w-4 h-4 rounded bg-zinc-800 border-zinc-700 text-red-500 focus:ring-offset-ambient-900 focus:ring-red-500/50">
+                        <span class="text-xs text-zinc-500 group-hover:text-zinc-400 transition-colors">Remember me</span>
+                    </label>
+                    <a href="#" class="text-xs text-red-500/80 hover:text-red-400 font-bold transition-colors">Forgot Access?</a>
+                </div>
+
+                <button type="submit" 
+                    class="w-full bg-gradient-to-r from-red-600 to-red-700 hover:from-red-500 hover:to-red-600 text-white font-bold py-4 rounded-2xl shadow-lg shadow-red-900/20 active:scale-[0.98] transition-all flex items-center justify-center gap-2">
+                    Unlock Dashboard <i class="fas fa-arrow-right text-xs"></i>
+                </button>
+            </form>
+
+            <div id="login-error" class="hidden mt-6 p-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-400 text-xs text-center font-bold animate-shake">
+                Invalid credentials. Please try again.
+            </div>
+        </div>
+        
+        <p class="absolute bottom-8 text-zinc-600 text-[10px] font-bold uppercase tracking-[0.3em]">Secure Terminal • COTABATO NODE</p>
+    </div>
 
     <!-- Ambient Glow Effects -->
     <div
-        class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-gold-500/10 blur-[150px] rounded-full pointer-events-none z-[-1]">
+        class="fixed top-0 left-1/4 w-[500px] h-[500px] bg-red-500/10 blur-[150px] rounded-full pointer-events-none z-[-1]">
     </div>
     <div
         class="fixed bottom-0 right-1/4 w-[400px] h-[400px] bg-emerald-500/10 blur-[150px] rounded-full pointer-events-none z-[-1]">
@@ -48,32 +127,36 @@
 
     <!-- UI Loader -->
     <div id="loader"
-        class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-ambient-900/90 backdrop-blur-md transition-opacity duration-300">
-        <div
-            class="w-16 h-16 border-4 border-zinc-800 border-t-gold-500 rounded-full animate-spin mb-4 shadow-[0_0_15px_rgba(234,179,8,0.3)]">
+        class="hidden fixed inset-0 z-50 flex flex-col items-center justify-center bg-ambient-900/90 backdrop-blur-md transition-opacity duration-300">
+        <div class="w-20 h-20 mb-6 relative group">
+            <div class="absolute inset-0 bg-red-500/20 blur-2xl rounded-full animate-pulse"></div>
+            <img src="logo.png" alt="Logo" class="w-full h-full object-contain relative z-10 animate-fade-in">
         </div>
-        <h2 class="text-xl font-bold text-white tracking-widest uppercase">5a Royal Gaming OPC</h2>
+        <h2 class="text-xl font-bold text-white tracking-widest uppercase">IMPERIAL GAMING OPC</h2>
         <p class="text-zinc-400 mt-2 text-sm tracking-widest animate-pulse">Establishing Secure Connection...</p>
     </div>
 
-    <!-- Top Navigation -->
-    <nav class="sticky top-0 z-40 bg-ambient-900/80 backdrop-blur-xl border-b border-zinc-800/80 shadow-sm">
+    <!-- Main Content (Hidden until login) -->
+    <div id="main-content" class="hidden flex-col min-h-screen">
+        <!-- Top Navigation -->
+        <nav class="sticky top-0 z-40 bg-ambient-900/80 backdrop-blur-xl border-b border-zinc-800/80 shadow-sm">
         <div
             class="max-w-[1600px] mx-auto px-6 lg:px-10 py-5 flex flex-col md:flex-row items-center justify-between gap-4">
 
             <!-- Branding -->
             <div class="flex flex-col items-center md:items-start select-none cursor-default">
-                <div class="flex items-center gap-3">
+                <div class="flex items-center gap-4">
                     <div
-                        class="w-8 h-8 rounded-lg bg-gradient-to-br from-gold-400 to-amber-600 flex items-center justify-center text-ambient-900 shadow-[0_0_15px_rgba(234,179,8,0.4)]">
-                        <i class="fas fa-coins font-bold"></i>
+                        class="w-12 h-12 rounded-xl bg-ambient-800 border border-zinc-800 flex items-center justify-center overflow-hidden shadow-[0_0_20px_rgba(239,68,68,0.2)] group-hover:shadow-[0_0_30px_rgba(239,68,68,0.4)] transition-all">
+                        <img src="logo.png" alt="Imperial Gaming Logo" class="w-10 h-10 object-contain">
                     </div>
                     <h1
                         class="text-2xl font-black text-white tracking-tight leading-none bg-clip-text text-transparent bg-gradient-to-r from-white to-zinc-400">
-                        5A ROYAL GAMING <span class="text-gold-500">OPC</span>
+                        IMPERIAL GAMING <span class="text-red-500">OPC</span>
                     </h1>
                 </div>
-                <p class="text-[11px] font-bold tracking-[0.2em] text-zinc-500 uppercase mt-2 ml-11">LDS Daily Gross
+                <p class="text-[11px] font-bold tracking-[0.2em] text-zinc-500 uppercase mt-2 ml-11">COTABATO Daily
+                    Gross
                     Tracking Dashboard</p>
             </div>
 
@@ -127,11 +210,11 @@
                 <div
                     class="glass-card p-8 rounded-3xl border border-zinc-800 relative overflow-hidden group hover:border-zinc-700 transition-all shadow-[0_8px_30px_-5px_rgba(0,0,0,0.5)]">
                     <div
-                        class="absolute inset-0 bg-gradient-to-br from-gold-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
+                        class="absolute inset-0 bg-gradient-to-br from-red-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity">
                     </div>
                     <div class="relative z-10 flex flex-col h-full">
                         <div
-                            class="w-12 h-12 rounded-xl bg-ambient-800 border border-zinc-700 flex items-center justify-center text-gold-500 mb-6 shadow-inner">
+                            class="w-12 h-12 rounded-xl bg-ambient-800 border border-zinc-700 flex items-center justify-center text-red-500 mb-6 shadow-inner">
                             <i class="fas fa-sack-dollar text-xl"></i>
                         </div>
                         <h3 class="text-sm font-bold text-zinc-500 uppercase tracking-widest mb-1">Total Gross</h3>
@@ -204,13 +287,23 @@
                 <div
                     class="p-8 border-b border-zinc-800 flex flex-col md:flex-row justify-between items-center gap-4 bg-ambient-800/30">
                     <h2 class="text-2xl font-bold text-white tracking-tight">Detailed Breakdown</h2>
-                    <div class="flex flex-col sm:flex-row items-center gap-4 w-full max-w-xl">
+                    <div class="flex flex-col sm:flex-row items-center gap-3 w-full max-w-2xl">
                         <div class="relative w-full">
                             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
                             <input type="text" id="detailsSearch" placeholder="Search by teller, branch..."
-                                class="w-full bg-ambient-900 border border-zinc-700 text-white text-sm rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-gold-500 focus:ring-1 focus:ring-gold-500 transition-all">
+                                class="w-full bg-ambient-900 border border-zinc-700 text-white text-sm rounded-xl pl-11 pr-4 py-3 focus:outline-none focus:border-red-500 focus:ring-1 focus:ring-red-500 transition-all">
                         </div>
-                        <button onclick="exportDetailsToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 active:scale-95 whitespace-nowrap">
+                        <div class="relative w-full sm:w-48">
+                            <select id="statusFilter"
+                                class="w-full bg-ambient-900 border border-zinc-700 text-white text-sm rounded-xl pl-4 pr-10 py-3 appearance-none focus:outline-none focus:border-red-500 transition-all cursor-pointer font-medium">
+                                <option value="all">All Status</option>
+                                <option value="active">Active</option>
+                                <option value="offline">Offline</option>
+                            </select>
+                            <i class="fas fa-chevron-down absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-xs"></i>
+                        </div>
+                        <button onclick="exportDetailsToExcel()"
+                            class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 active:scale-95 whitespace-nowrap">
                             <i class="fas fa-file-excel"></i> Export Excel
                         </button>
                     </div>
@@ -251,20 +344,23 @@
                 <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto">
                     <!-- Search Filter -->
                     <div class="relative w-full sm:w-64">
-                         <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-xs"></i>
-                         <input type="text" id="areas-search" placeholder="Filter area..." 
-                             class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs rounded-xl pl-10 pr-4 py-2.5 focus:border-gold-500 outline-none transition-all">
+                        <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-xs"></i>
+                        <input type="text" id="areas-search" placeholder="Filter area..."
+                            class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs rounded-xl pl-10 pr-4 py-2.5 focus:border-red-500 outline-none transition-all">
                     </div>
                     <!-- Sort Filter -->
                     <div class="relative w-full sm:w-auto">
-                        <select id="areas-sort" class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs font-bold rounded-xl pl-4 pr-10 py-2.5 appearance-none cursor-pointer outline-none hover:border-zinc-500 transition-all">
+                        <select id="areas-sort"
+                            class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs font-bold rounded-xl pl-4 pr-10 py-2.5 appearance-none cursor-pointer outline-none hover:border-zinc-500 transition-all">
                             <option value="desc">Sort: Highest Shift</option>
                             <option value="asc">Sort: Lowest Shift</option>
                             <option value="alpha">Sort: Alphabetical (A-Z)</option>
                         </select>
-                        <i class="fas fa-filter absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-xs"></i>
+                        <i
+                            class="fas fa-filter absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-xs"></i>
                     </div>
-                    <button onclick="exportAreasToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 active:scale-95">
+                    <button onclick="exportAreasToExcel()"
+                        class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 active:scale-95">
                         <i class="fas fa-file-excel"></i> Export
                     </button>
                 </div>
@@ -275,12 +371,17 @@
             </div>
         </section>
 
-        <!-- ================= TAB: COMPARISON ================= -->
         <section id="tab-comparison" class="tab-content hidden">
-            <div class="mb-8">
-                <h2 class="text-2xl font-bold text-white tracking-tight">Period Comparison</h2>
-                <p class="text-zinc-500 mt-1 font-medium">Evaluating the latest 7-day period against the preceding 7-day
-                    period.</p>
+            <div class="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
+                <div>
+                    <h2 class="text-2xl font-bold text-white tracking-tight">Period Comparison</h2>
+                    <p class="text-zinc-500 mt-1 font-medium">Evaluating the latest 7-day period against the preceding
+                        7-day period.</p>
+                </div>
+                <button onclick="exportComparisonToExcel()"
+                    class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-5 py-3 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 active:scale-95 whitespace-nowrap">
+                    <i class="fas fa-file-excel"></i> Export Trajectory Analysis
+                </button>
             </div>
 
             <!-- Comparison Metric Cards -->
@@ -398,8 +499,8 @@
         <section id="tab-sync" class="tab-content hidden">
             <div class="mb-8 flex justify-between items-end">
                 <div>
-                    <h2 class="text-2xl font-bold text-white tracking-tight">Inter-Month Data Sync</h2>
-                    <p class="text-zinc-500 mt-1 font-medium">Comparing February (CSV 1 & CSV 2) against March (CSV 3)
+                    <h2 class="text-2xl font-bold text-white tracking-tight">Inter-Period Data Sync</h2>
+                    <p class="text-zinc-500 mt-1 font-medium">Comparing Previous (Part 1 & Part 2) against Current
                         performance benchmarks.</p>
                 </div>
                 <div class="bg-zinc-800/50 px-4 py-2 rounded-xl border border-zinc-700/50">
@@ -410,7 +511,7 @@
 
             <div id="sync-loader"
                 class="hidden flex flex-col items-center justify-center p-20 glass-card rounded-3xl border border-zinc-800">
-                <div class="w-10 h-10 border-4 border-zinc-800 border-t-gold-500 rounded-full animate-spin mb-4"></div>
+                <div class="w-10 h-10 border-4 border-zinc-800 border-t-red-500 rounded-full animate-spin mb-4"></div>
                 <p class="text-zinc-400 text-sm font-bold uppercase tracking-widest">Synchronizing Datasets...</p>
             </div>
 
@@ -418,14 +519,16 @@
                 <!-- Comparison KPI Cards -->
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
                     <div class="glass-card p-6 rounded-3xl border border-zinc-800 relative overflow-hidden group">
-                        <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Feb Total Gross</h3>
+                        <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Previous Total Gross
+                        </h3>
                         <div class="flex items-baseline gap-2">
                             <span class="text-xl text-zinc-500 font-bold">₱</span>
                             <span id="sync-feb-total" class="text-3xl font-black text-white tracking-tight">0.00</span>
                         </div>
                     </div>
                     <div class="glass-card p-6 rounded-3xl border border-zinc-800 relative overflow-hidden group">
-                        <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Mar Total Gross</h3>
+                        <h3 class="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">Current Total Gross
+                        </h3>
                         <div class="flex items-baseline gap-2">
                             <span class="text-xl text-zinc-500 font-bold">₱</span>
                             <span id="sync-mar-total" class="text-3xl font-black text-white tracking-tight">0.00</span>
@@ -454,7 +557,7 @@
                     </div>
                     <div
                         class="flex-shrink-0 w-16 h-16 rounded-2xl bg-zinc-800/80 border border-zinc-700 flex items-center justify-center relative z-10">
-                        <i class="fas fa-lightbulb text-2xl text-gold-400 animate-pulse"></i>
+                        <i class="fas fa-lightbulb text-2xl text-red-400 animate-pulse"></i>
                     </div>
                     <div class="flex-1 relative z-10">
                         <h3 class="text-white font-bold text-lg mb-2">Performance Insights</h3>
@@ -471,20 +574,24 @@
                         <div class="flex flex-col sm:flex-row gap-4 w-full sm:w-auto z-10">
                             <!-- Supervisor Search -->
                             <div class="relative w-full sm:w-64">
-                                <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-xs"></i>
-                                <input type="text" id="sync-spvr-search" placeholder="Search supervisor..." 
-                                    class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs rounded-xl pl-10 pr-4 py-2.5 focus:border-gold-500 outline-none transition-all">
+                                <i
+                                    class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-xs"></i>
+                                <input type="text" id="sync-spvr-search" placeholder="Search supervisor..."
+                                    class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs rounded-xl pl-10 pr-4 py-2.5 focus:border-red-500 outline-none transition-all">
                             </div>
                             <!-- Supervisor Sort -->
                             <div class="relative w-full sm:w-auto">
-                                <select id="sync-spvr-sort" class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs font-bold rounded-xl pl-4 pr-10 py-2.5 appearance-none cursor-pointer outline-none transition-all hover:border-zinc-500">
+                                <select id="sync-spvr-sort"
+                                    class="w-full bg-ambient-800/50 border border-zinc-700 text-white text-xs font-bold rounded-xl pl-4 pr-10 py-2.5 appearance-none cursor-pointer outline-none transition-all hover:border-zinc-500">
                                     <option value="desc">Sort: Highest Shift</option>
                                     <option value="asc">Sort: Lowest Shift</option>
                                     <option value="alpha">Sort: Alphabetical (A-Z)</option>
                                 </select>
-                                <i class="fas fa-arrow-down-wide-short absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-xs"></i>
+                                <i
+                                    class="fas fa-arrow-down-wide-short absolute right-4 top-1/2 -translate-y-1/2 text-zinc-500 pointer-events-none text-xs"></i>
                             </div>
-                            <button onclick="exportSyncToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 active:scale-95">
+                            <button onclick="exportSyncToExcel()"
+                                class="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-emerald-900/20 active:scale-95">
                                 <i class="fas fa-file-excel"></i> CSV Export
                             </button>
                         </div>
@@ -508,7 +615,7 @@
                         <div class="relative w-full sm:w-72">
                             <i class="fas fa-search absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500"></i>
                             <input type="text" id="syncSearch" placeholder="Search units or SVPRs..."
-                                class="w-full bg-ambient-900 border border-zinc-700 text-zinc-300 text-sm rounded-xl focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500 block pl-10 p-2.5 transition-all outline-none placeholder-zinc-600">
+                                class="w-full bg-ambient-900 border border-zinc-700 text-zinc-300 text-sm rounded-xl focus:ring-2 focus:ring-red-500/50 focus:border-red-500 block pl-10 p-2.5 transition-all outline-none placeholder-zinc-600">
                         </div>
                     </div>
                     <div class="overflow-x-auto">
@@ -520,10 +627,10 @@
                                         Operational Unit</th>
                                     <th
                                         class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-zinc-500 border-b border-zinc-800 text-right">
-                                        February</th>
+                                        Previous</th>
                                     <th
                                         class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-zinc-500 border-b border-zinc-800 text-right">
-                                        March</th>
+                                        Current</th>
                                     <th
                                         class="px-8 py-5 text-xs font-bold uppercase tracking-widest text-zinc-500 border-b border-zinc-800 text-right">
                                         Shift</th>
@@ -543,11 +650,12 @@
     <footer class="mt-auto border-t border-zinc-800/80 bg-ambient-900 pb-8 pt-10 px-6">
         <div class="max-w-[1600px] mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
             <p class="text-zinc-500 text-sm font-medium">Developed By : Edwin Angelo Catequista @ SMNR IT Group</p>
-            <p class="text-zinc-600 text-xs font-bold tracking-widest uppercase">&copy; 2026 5A ROYAL GAMING OPC. All
+            <p class="text-zinc-600 text-xs font-bold tracking-widest uppercase">&copy; 2026 IMPERIAL GAMING OPC. All
                 rights reserved.</p>
         </div>
     </footer>
 
+    </div> <!-- End Main Content -->
     <script src="app.js"></script>
 </body>
 

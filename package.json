@@ -1,0 +1,17 @@
+{
+  "name": "imperial-gaming-gross-dashboard",
+  "version": "1.0.0",
+  "description": "LDS Daily Gross Tracking Dashboard",
+  "main": "dashboard/index.html",
+  "scripts": {
+    "start": "npx servor dashboard index.html --browse",
+    "dev": "npx servor dashboard index.html --browse",
+    "check:base": "node check_base.mjs",
+    "check:feb": "node check_feb.mjs",
+    "check:mar": "node check_mar.mjs",
+    "check:totals": "node check_totals.mjs"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
