@@ -6,6 +6,7 @@
   "scripts": {
     "start": "npx servor dashboard index.html --browse",
     "dev": "npx servor dashboard index.html --browse",
+    "build": "echo 'Building... (No compilation needed for CDN-based Tailwind)'",
     "check:base": "node check_base.mjs",
     "check:feb": "node check_feb.mjs",
     "check:mar": "node check_mar.mjs",

@@ -1,8 +1,8 @@
 /* Master Styling Base & Utility Classes */
 
 :root {
-    --brand-500: #14b8a6;
-    --accent-600: #4f46e5;
+    --brand-500: #ef4444; /* red-500 */
+    --accent-600: #dc2626; /* red-600 */
 }
 
 body {
@@ -71,19 +71,19 @@ body {
 .nav-item:hover .nav-icon {
     background: #fff;
     color: var(--brand-500);
-    box-shadow: 0 4px 6px -1px rgba(20, 184, 166, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(239, 68, 68, 0.1);
 }
 
 .nav-item.active {
     color: var(--brand-500);
-    background: rgba(204, 251, 241, 0.4);
-    /* brand-100 */
+    background: rgba(254, 242, 242, 0.4);
+    /* red-50 */
 }
 
 .nav-item.active .nav-icon {
     background: var(--brand-500);
     color: white;
-    box-shadow: 0 4px 12px -2px rgba(20, 184, 166, 0.4);
+    box-shadow: 0 4px 12px -2px rgba(239, 68, 68, 0.4);
 }
 
 /* Animation Keys */
